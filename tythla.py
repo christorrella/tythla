@@ -1,9 +1,14 @@
+# for the clear screen function
 from os import system, name
 from time import sleep
+
+#for doing Tesla API server requests
 import requests
 import json
+import datetime
 
 def clear():
+    # Clears the screen. Useful for a pretty interface.
 
     # for windows
     if name == 'nt':
@@ -14,8 +19,9 @@ def clear():
         _ = system('clear')
 
 def requestAccessToken(email, password):
+    # Does the actual dirty work of requesting an access token from Tesla's API.
 
-    print("\nRequesting access_token from owner-api.teslamotors.com/oauth/token...\n")
+    print("\nRequesting access_token from Tesla owner-API...\n")
 
     oauthUrl = "https://owner-api.teslamotors.com/oauth/token"
     headers = {
@@ -29,21 +35,40 @@ def requestAccessToken(email, password):
         "grant_type": "password"
     }
 
+    # do the POST request
     response = requests.post(oauthUrl, data=json.dumps(body), headers=headers)
 
+    # obtain the server response code from response
     status_code = response.status_code
+    responseJSON = response.json()
 
-    if (status_code == 200):
-        print("Success!")
-    else:
+    # let the user know if anything went wrong
+    if not (status_code == 200):
         print("Failure.")
+        print("HTTP Status Code = " + str(status_code))
+        print("Server response body: " + response.text)
+    else:
+        print("Success.")
 
-    print("\nServer response body:")
-    print(response.text)
+        access_token = responseJSON.get("access_token")
+        created_at = responseJSON.get("created_at")
+        expires_in = responseJSON.get("expires_in")
+
+        creation_date_UTC = str(datetime.datetime.fromtimestamp(created_at))
+        expiration_date_UTC = str(datetime.datetime.fromtimestamp(expires_in + created_at))
+
+        print("access_token: " + access_token)
+        print("creation date: " + creation_date_UTC)
+        print("expiry date: " + expiration_date_UTC)
+
+        print("\n\nFull response body: \n" + response.text)
+
 
 
 def obtainAccessToken():
-    print("Login: obtain Tesla API access_token\n")
+    # Ask user for email and password and submit to other method for getting access_token
+
+    print("[Obtain a Tesla API access_token]\n")
 
     print("Enter your Tesla account's email and password.\n")
 
@@ -72,9 +97,7 @@ def invalidMenuOpt():
 
 def menu():
 
-    userQuit = False
-
-    while not (userQuit):
+    while (True):
 
         # prints a really simple menu for now
         # will be more complex as new features are added
@@ -87,8 +110,13 @@ def menu():
         print("2. Select vehicle (specify vehicle_id)")
         print("3. Send vehicle commands")
         print("4. Check vehicle status")
+        print("5. Quit")
 
-        selection = input("\nSelect an option from above (1-4): ")
+        selection = input("\nSelect an option from above (1-5): ")
+
+        # quit if the user wants to leave
+        if (selection == "5"):
+            break
 
         options = {
             1: obtainAccessToken,
@@ -99,6 +127,7 @@ def menu():
 
         clear()
 
+        # go to the function that user specified
         try:
             options.get(int(selection), invalidMenuOpt)()
         except ValueError:
