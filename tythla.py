@@ -68,8 +68,6 @@ def requestAccessToken(email, password):
 def obtainAccessToken():
     # Ask user for email and password and submit to other method for getting access_token
 
-    print("[Obtain a Tesla API access_token]\n")
-
     print("Enter your Tesla account's email and password.\n")
 
     teslaEmail = input("Email: ")
@@ -89,8 +87,8 @@ def checkStatus():
 def menu():
 
     menuOptionText = {
-        1: "Log in (obtain an access_token)",
-        2: "Select vehicle (specify a vehicle_id)",
+        1: "Log in: obtain an access_token",
+        2: "Select vehicle: specify a vehicle_id",
         3: "Send vehicle commands",
         4: "Check vehicle status",
         5: "Quit Tythla"
@@ -129,6 +127,10 @@ def menu():
         try:
             # if option is valid, go to that function
             if int(selection) in functions.keys():
+
+                # print function header
+                print("[" + selection + ". " + menuOptionText.get(int(selection)) +"]\n")
+                # actually do the function
                 functions.get(int(selection))()
                 # menu option has been exercised; time for next selection
                 input("\nPress enter to continue...")
