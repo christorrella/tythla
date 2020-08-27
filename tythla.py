@@ -88,6 +88,21 @@ def checkStatus():
 
 def menu():
 
+    menuOptionText = {
+        1: "Log in (obtain an access_token)",
+        2: "Select vehicle (specify a vehicle_id)",
+        3: "Send vehicle commands",
+        4: "Check vehicle status",
+        5: "Quit Tythla"
+    }
+
+    functions = {
+        1: obtainAccessToken,
+        2: selectVehicleId,
+        3: sendCommands,
+        4: checkStatus
+    }
+
     while (True):
 
         # prints a really simple menu for now
@@ -95,13 +110,12 @@ def menu():
 
         clear()
 
+        # print menu header
         print("Tythla - a Python GUI for Tesla's REST owner-API\n")
+
         # this menu-printing will eventually be a loop
-        print("1. Login (obtain access_token)")
-        print("2. Select vehicle (specify vehicle_id)")
-        print("3. Send vehicle commands")
-        print("4. Check vehicle status")
-        print("5. Quit")
+        for item in menuOptionText.keys():
+            print(str(item) + ". " + menuOptionText.get(item))
 
         selection = input("\nSelect an option from above (1-5): ")
 
@@ -109,20 +123,13 @@ def menu():
         if (selection == "5"):
             break
 
-        options = {
-            1: obtainAccessToken,
-            2: selectVehicleId,
-            3: sendCommands,
-            4: checkStatus
-        }
-
         # clear screen in anticipation of menu option appearing
         clear()
 
         try:
             # if option is valid, go to that function
-            if int(selection) in options.keys():
-                options.get(int(selection))()
+            if int(selection) in functions.keys():
+                functions.get(int(selection))()
                 # menu option has been exercised; time for next selection
                 input("\nPress enter to continue...")
 
