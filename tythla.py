@@ -1,5 +1,7 @@
 from os import system, name
 from time import sleep
+import requests
+import json
 
 def clear():
 
@@ -11,9 +13,45 @@ def clear():
     else:
         _ = system('clear')
 
+def requestAccessToken(email, password):
+
+    print("\nRequesting access_token from owner-api.teslamotors.com/oauth/token...\n")
+
+    oauthUrl = "https://owner-api.teslamotors.com/oauth/token"
+    headers = {
+        "Content-Type": "application/json"
+    }
+    body = {
+        "password": password,
+        "email": email,
+        "client_secret": "c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3",
+        "client_id": "81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384",
+        "grant_type": "password"
+    }
+
+    response = requests.post(oauthUrl, data=json.dumps(body), headers=headers)
+
+    status_code = response.status_code
+
+    if (status_code == 200):
+        print("Success!")
+    else:
+        print("Failure.")
+
+    print("\nServer response body:")
+    print(response.text)
+
 
 def obtainAccessToken():
-    print("obtainAccessToken not yet implemented.")
+    print("Login: obtain Tesla API access_token\n")
+
+    print("Enter your Tesla account's email and password.\n")
+
+    teslaEmail = input("Email: ")
+    teslaPassword = input("Password: ")
+
+    success = requestAccessToken(teslaEmail, teslaPassword)
+
     input()
 
 def selectVehicleId():
