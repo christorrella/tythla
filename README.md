@@ -15,9 +15,9 @@ I think the best way to implement Tythla will be to create a command-line GUI wi
 Basic commands will be as follows, subject to change as the project progresses:
 
 ### 1. Obtaining an access token
-To interact with a Tesla car, one must firstly obtain an API authorization key, known as an `access_token`. This token is given in exchange for a valid username and password of a Tesla owner account, and is used in every command sent to Tesla's Hermes vehicle network (Hermes acts as a proxy to send commands to each individual Tesla vehicle). To obtain an access_token, Tythla's GUI will offer this as an option in the GUI's main menu.
+To interact with a Tesla car, one must firstly obtain an API authorization key, known as an `access_token`. This token is provided by the owner-api in exchange for a valid username and password of a Tesla owner account, and is used in every command sent to Tesla's vehicle network. To obtain an access_token, Tythla's GUI will offer this as an option (to "log in") in the GUI's main menu.
 
-After obtaining an access_token, Tythla might ask for permission to save the access token locally in a plaintext file -- this way, the token isn't necessarily pasted into the command-line for every subsequent command sent to Hermes.
+After obtaining an access_token, Tythla might ask for permission to save the access token locally in a plaintext file -- this way, the token isn't unnecessarily pasted into the command-line for every subsequent command sent to a vehicle.
 
 ### 2. Selecting a vehicle
 Next, to make a specific car do a specific thing, one needs to specify which vehicle they're trying to command. After automatically obtaining a list of vehicles in the Tesla owner's garage from the API, Tythla's GUI will require users to select a default vehicle in the GUI to send commands to.
