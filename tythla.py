@@ -46,7 +46,7 @@ def requestAccessToken(email, password):
     else:
         print("Failure.")
 
-    # print the agiven ccess token and/or other information
+    # print the given access token and/or other information
     print("\nServer response body:")
     print(response.text)
 
