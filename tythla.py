@@ -1,9 +1,13 @@
+# for the clear screen function
 from os import system, name
 from time import sleep
+
+#for doing Tesla API server requests
 import requests
 import json
 
 def clear():
+    # Clears the screen. Useful for a pretty interface.
 
     # for windows
     if name == 'nt':
@@ -14,6 +18,7 @@ def clear():
         _ = system('clear')
 
 def requestAccessToken(email, password):
+    # Does the actual dirty work of requesting an access token from Tesla's API.
 
     print("\nRequesting access_token from owner-api.teslamotors.com/oauth/token...\n")
 
@@ -29,20 +34,26 @@ def requestAccessToken(email, password):
         "grant_type": "password"
     }
 
+    # do the POST request
     response = requests.post(oauthUrl, data=json.dumps(body), headers=headers)
 
+    # obtain the server response code from response
     status_code = response.status_code
 
+    # let the user know if anything went wrong
     if (status_code == 200):
         print("Success!")
     else:
         print("Failure.")
 
+    # print the agiven ccess token and/or other information
     print("\nServer response body:")
     print(response.text)
 
 
 def obtainAccessToken():
+    # Ask user for email and password and submit to other method for getting access_token
+
     print("Login: obtain Tesla API access_token\n")
 
     print("Enter your Tesla account's email and password.\n")
@@ -102,6 +113,7 @@ def menu():
 
         clear()
 
+        # go to the function that user specified
         try:
             options.get(int(selection), invalidMenuOpt)()
         except ValueError:
