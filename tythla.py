@@ -77,23 +77,14 @@ def obtainAccessToken():
 
     success = requestAccessToken(teslaEmail, teslaPassword)
 
-    input()
-
 def selectVehicleId():
     print("selectVehicleId not yet implemented.")
-    input()
 
 def sendCommands():
     print("sendCommands not yet implemented.")
-    input()
 
 def checkStatus():
     print("checkStatus not yet implemented.")
-    input()
-
-def invalidMenuOpt():
-    print("invalidMenuOpt not yet implemented.")
-    input()
 
 def menu():
 
@@ -125,13 +116,20 @@ def menu():
             4: checkStatus
         }
 
+        # clear screen in anticipation of menu option appearing
         clear()
 
-        # go to the function that user specified
         try:
-            options.get(int(selection), invalidMenuOpt)()
-        except ValueError:
+            # if option is valid, go to that function
+            if int(selection) in options.keys():
+                options.get(int(selection))()
+                # menu option has been exercised; time for next selection
+                input("\nPress enter to continue...")
+
+        except:
             pass
+
+
 
 
 
