@@ -2,10 +2,16 @@
 from os import system, name
 from time import sleep
 
-#for doing Tesla API server requests
+# for doing Tesla API server requests
 import requests
 import json
 import datetime
+
+# used for verbose output
+debug = True
+
+access_token = ""
+expiry = ""
 
 def clear():
     # Clears the screen. Useful for a pretty interface.
@@ -17,6 +23,41 @@ def clear():
     # for mac and linux
     else:
         _ = system('clear')
+
+def saveToken(JSONtext):
+
+    # attempts to save token information from owner-api to local disk
+
+    try:
+        print("Saving token...")
+
+        fo = open("oauth.json", "w")
+        fo.write(JSONtext)
+        fo.close()
+
+        print("Token saved.")
+    except:
+        print("Unable to save token; unknown error.")
+
+def loadToken():
+
+    # attempts to load previously saved token info from owner-api
+
+    try:
+        print("Loading token...")
+
+        with open('oauth.json') as f:
+            data = json.load(f)
+
+        f.close()
+
+        print("Token loaded.")
+
+        print("access_token: " + data.get("access_token"))
+        print("expiry: " + str(data.get("expires_in")))
+    except FileNotFoundError:
+        print("oauth.json not found in current directory; new access_token/login required.")
+
 
 def requestAccessToken(email, password):
     # Does the actual dirty work of requesting an access token from Tesla's API.
@@ -47,6 +88,7 @@ def requestAccessToken(email, password):
         print("Failure.")
         print("HTTP Status Code = " + str(status_code))
         print("Server response body: " + response.text)
+        return False
     else:
         print("Success.")
 
@@ -61,7 +103,10 @@ def requestAccessToken(email, password):
         print("creation date: " + creation_date_UTC)
         print("expiry date: " + expiration_date_UTC)
 
-        print("\n\nFull response body: \n" + response.text)
+        if debug:
+            print("\n\nFull response body: \n" + response.text)
+
+        saveToken(response.text)
 
 
 
@@ -85,6 +130,8 @@ def checkStatus():
     print("checkStatus not yet implemented.")
 
 def menu():
+
+    loadToken()
 
     menuOptionText = {
         1: "Log in: obtain an access_token",
