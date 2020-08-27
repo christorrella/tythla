@@ -50,17 +50,21 @@ def requestAccessToken(email, password):
     else:
         print("Success.")
 
+        # parse the data from the JSON response
         access_token = responseJSON.get("access_token")
         created_at = responseJSON.get("created_at")
         expires_in = responseJSON.get("expires_in")
 
+        # convert the epoch into a readable format
         creation_date_UTC = str(datetime.datetime.fromtimestamp(created_at))
         expiration_date_UTC = str(datetime.datetime.fromtimestamp(expires_in + created_at))
 
+        # show user the details
         print("access_token: " + access_token)
         print("creation date: " + creation_date_UTC)
         print("expiry date: " + expiration_date_UTC)
 
+        # show extras for debugging
         print("\n\nFull response body: \n" + response.text)
 
 
@@ -77,25 +81,31 @@ def obtainAccessToken():
 
     success = requestAccessToken(teslaEmail, teslaPassword)
 
-    input()
-
 def selectVehicleId():
     print("selectVehicleId not yet implemented.")
-    input()
 
 def sendCommands():
     print("sendCommands not yet implemented.")
-    input()
 
 def checkStatus():
     print("checkStatus not yet implemented.")
-    input()
-
-def invalidMenuOpt():
-    print("invalidMenuOpt not yet implemented.")
-    input()
 
 def menu():
+
+    menuOptionText = {
+        1: "Log in (obtain an access_token)",
+        2: "Select vehicle (specify a vehicle_id)",
+        3: "Send vehicle commands",
+        4: "Check vehicle status",
+        5: "Quit Tythla"
+    }
+
+    functions = {
+        1: obtainAccessToken,
+        2: selectVehicleId,
+        3: sendCommands,
+        4: checkStatus
+    }
 
     while (True):
 
@@ -104,13 +114,12 @@ def menu():
 
         clear()
 
+        # print menu header
         print("Tythla - a Python GUI for Tesla's REST owner-API\n")
+
         # this menu-printing will eventually be a loop
-        print("1. Login (obtain access_token)")
-        print("2. Select vehicle (specify vehicle_id)")
-        print("3. Send vehicle commands")
-        print("4. Check vehicle status")
-        print("5. Quit")
+        for item in menuOptionText.keys():
+            print(str(item) + ". " + menuOptionText.get(item))
 
         selection = input("\nSelect an option from above (1-5): ")
 
@@ -118,20 +127,20 @@ def menu():
         if (selection == "5"):
             break
 
-        options = {
-            1: obtainAccessToken,
-            2: selectVehicleId,
-            3: sendCommands,
-            4: checkStatus
-        }
-
+        # clear screen in anticipation of menu option appearing
         clear()
 
-        # go to the function that user specified
         try:
-            options.get(int(selection), invalidMenuOpt)()
-        except ValueError:
+            # if option is valid, go to that function
+            if int(selection) in functions.keys():
+                functions.get(int(selection))()
+                # menu option has been exercised; time for next selection
+                input("\nPress enter to continue...")
+
+        except:
             pass
+
+
 
 
 
