@@ -10,8 +10,8 @@ import datetime
 # used for verbose output
 debug = True
 
+# used for sending commands to owner-API
 access_token = ""
-expiry = ""
 
 def clear():
     # Clears the screen. Useful for a pretty interface.
@@ -23,6 +23,12 @@ def clear():
     # for mac and linux
     else:
         _ = system('clear')
+
+def getTimeUTC(timestamp):
+
+    # useful for printing dates
+
+    return datetime.datetime.fromtimestamp(timestamp)
 
 def saveToken(JSONtext):
 
@@ -36,8 +42,13 @@ def saveToken(JSONtext):
         fo.close()
 
         print("Token saved.")
+
+        return True
+
     except:
         print("Unable to save token; unknown error.")
+
+        return False
 
 def loadToken():
 
@@ -53,10 +64,36 @@ def loadToken():
 
         print("Token loaded.")
 
-        print("access_token: " + data.get("access_token"))
-        print("expiry: " + str(data.get("expires_in")))
+        access_token = data.get("access_token")
+        expiry = data.get("expires_in") + data.get("created_at")
+
+        if debug:
+            print("access_token: " + access_token)
+            print("expiry: " + str(datetime.datetime.fromtimestamp(expiry)) + " UTC")
+
+        if isTokenValid(expiry):
+            return True
+        else:
+            return False
+
     except FileNotFoundError:
         print("oauth.json not found in current directory; new access_token/login required.")
+
+        return False
+
+def isTokenValid(expiry):
+
+    # checks if loaded token information is valid based on timestamp
+
+    print("Checking the token's validity...")
+
+    if(int(time.time()) > expiry):
+        print("The token in oauth.json has expired. Request a new one from the main menu.")
+        return False
+    else:
+        print("Token appears to be valid.")
+        return True
+
 
 
 def requestAccessToken(email, password):
@@ -131,8 +168,6 @@ def checkStatus():
 
 def menu():
 
-    loadToken()
-
     menuOptionText = {
         1: "Log in: obtain an access_token",
         2: "Select vehicle: specify a vehicle_id",
@@ -152,8 +187,6 @@ def menu():
 
         # prints a really simple menu for now
         # will be more complex as new features are added
-
-        clear()
 
         # print menu header
         print("Tythla - a Python GUI for Tesla's REST owner-API\n")
@@ -185,12 +218,16 @@ def menu():
         except:
             pass
 
+        clear()
+
 
 
 
 
 def main():
-    # print a basic menu
+
+    clear()
+
     menu()
 
 main()
