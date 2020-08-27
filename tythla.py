@@ -72,9 +72,7 @@ def invalidMenuOpt():
 
 def menu():
 
-    userQuit = False
-
-    while not (userQuit):
+    while (True):
 
         # prints a really simple menu for now
         # will be more complex as new features are added
@@ -87,8 +85,13 @@ def menu():
         print("2. Select vehicle (specify vehicle_id)")
         print("3. Send vehicle commands")
         print("4. Check vehicle status")
+        print("5. Quit")
 
-        selection = input("\nSelect an option from above (1-4): ")
+        selection = input("\nSelect an option from above (1-5): ")
+
+        # quit if the user wants to leave
+        if (selection == "5"):
+            break
 
         options = {
             1: obtainAccessToken,
