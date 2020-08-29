@@ -1,6 +1,7 @@
 # for the clear screen function
 from os import system, name
 from time import sleep
+import time
 
 # for doing Tesla API server requests
 import requests
@@ -8,12 +9,13 @@ import json
 import datetime
 
 # used for verbose output
-debug = True
+debug = False
 
-# used for sending commands to owner-API
-access_token = ""
+# used for sending commands to specific vehicle
+id = -1
 
 def clear():
+
     # Clears the screen. Useful for a pretty interface.
 
     # for windows
@@ -24,11 +26,13 @@ def clear():
     else:
         _ = system('clear')
 
+
 def getTimeUTC(timestamp):
 
     # useful for printing dates
 
-    return datetime.datetime.fromtimestamp(timestamp)
+    return str(datetime.datetime.fromtimestamp(timestamp)) + " UTC"
+
 
 def saveToken(JSONtext):
 
@@ -50,6 +54,7 @@ def saveToken(JSONtext):
 
         return False
 
+
 def loadToken():
 
     # attempts to load previously saved token info from owner-api
@@ -62,24 +67,24 @@ def loadToken():
 
         f.close()
 
-        print("Token loaded.")
+        print("Token file loaded...")
 
-        access_token = data.get("access_token")
         expiry = data.get("expires_in") + data.get("created_at")
 
         if debug:
-            print("access_token: " + access_token)
-            print("expiry: " + str(datetime.datetime.fromtimestamp(expiry)) + " UTC")
+            print("access_token: " + data.get("access_token"))
+            print("expiry: " + getTimeUTC(expiry))
 
         if isTokenValid(expiry):
-            return True
+            return data.get("access_token")
         else:
-            return False
+            return ""
 
     except FileNotFoundError:
         print("oauth.json not found in current directory; new access_token/login required.")
 
-        return False
+        return ""
+
 
 def isTokenValid(expiry):
 
@@ -87,19 +92,57 @@ def isTokenValid(expiry):
 
     print("Checking the token's validity...")
 
-    if(int(time.time()) > expiry):
+    if time.time() > expiry :
         print("The token in oauth.json has expired. Request a new one from the main menu.")
         return False
     else:
-        print("Token appears to be valid.")
+        print("Token not expired.")
         return True
 
+def requestVehicleList(access_token):
+
+    # Requests list of vehicles from Tesla owner's account
+
+    print("\nRequesting vehicle list from Tesla owner-API...")
+
+    oauthUrl = "https://owner-api.teslamotors.com/api/1/vehicles"
+    headers = {
+        "Authorization": "Bearer " + access_token
+    }
+    body = {}
+
+    # do the GET request
+    response = requests.get(oauthUrl, data=json.dumps(body), headers=headers)
+
+    # obtain the server response code from response
+    status_code = response.status_code
+    responseJSON = response.json()
+
+    if not (status_code == 200):
+        print("Failure.")
+        print("HTTP Status Code = " + str(status_code))
+        print("Server response body: " + response.text)
+        return False
+    else:
+        print("Success.")
+
+        if debug:
+            print("\n\nFull response body: \n" + response.text)
+
+        # parse first layer of response
+        response = responseJSON.get("response")
+        count = responseJSON.get("count")
+
+
+
+        return response
 
 
 def requestAccessToken(email, password):
+
     # Does the actual dirty work of requesting an access token from Tesla's API.
 
-    print("\nRequesting access_token from Tesla owner-API...\n")
+    print("\nRequesting access_token from Tesla owner-API...")
 
     oauthUrl = "https://owner-api.teslamotors.com/oauth/token"
     headers = {
@@ -146,8 +189,8 @@ def requestAccessToken(email, password):
         saveToken(response.text)
 
 
-
 def obtainAccessToken():
+
     # Ask user for email and password and submit to other method for getting access_token
 
     print("Enter your Tesla account's email and password.\n")
@@ -158,7 +201,70 @@ def obtainAccessToken():
     success = requestAccessToken(teslaEmail, teslaPassword)
 
 def selectVehicleId():
-    print("selectVehicleId not yet implemented.")
+
+    # requests list of vehicles from Tesla's API and displays them to user
+
+    # first load the token
+
+    access_token = loadToken()
+
+    if not access_token:
+        print("Unable to request vehicle list without valid token.")
+        return
+
+    # then request the vehicle list from the API
+
+    response = requestVehicleList(access_token)
+
+    #print(response)
+
+    # turn response into a dict of kv's
+
+    vehicles = {}
+    for vehicle in response:
+        #print(vehicle)
+        vehicles.update({response.index(vehicle) + 1 : vehicle})
+
+    #print(vehicles)
+
+
+    # print the available vehicles and ask user to select a vehicle
+
+    while (True):
+        clear()
+        print("[Select Vehicle]\n")
+        print("Vehicles found in your Tesla account:\n")
+
+        for vehicle in vehicles:
+            print(
+                str(vehicle) + ". " +
+                "Name: " + vehicles.get(vehicle).get("display_name") + ", "
+                "Model: " + vehicles.get(vehicle).get("vin")[3] + ", "
+                "VIN: " + vehicles.get(vehicle).get("vin") + ", "
+                "id: " + str(vehicles.get(vehicle).get("id"))
+            )
+
+
+        selection = input("\nSelect an vehicle from above (1-" + str(len(response)) + "): ")
+
+        try:
+            # if option is valid
+            if int(selection) <= len(response) and int(selection) > 0 :
+
+                print("\nVehicle selected: \n"
+                    "Name: " + vehicles.get(int(selection)).get("display_name") + ", "
+                    "Model: " + vehicles.get(int(selection)).get("vin")[3] + ", "
+                    "VIN: " + vehicles.get(int(selection)).get("vin") + ", "
+                    "id: " + str(vehicles.get(int(selection)).get("id"))
+                )
+
+                break
+
+        except:
+            pass
+
+
+
 
 def sendCommands():
     print("sendCommands not yet implemented.")
