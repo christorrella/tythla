@@ -12,7 +12,7 @@ import datetime
 debug = False
 
 # used for sending commands to specific vehicle
-id = -1
+selected_vehicle_id = "none"
 
 def clear():
 
@@ -204,7 +204,11 @@ def selectVehicleId():
 
     # requests list of vehicles from Tesla's API and displays them to user
 
-    # first load the token
+    # let python know this is referring to global var
+
+    global selected_vehicle_id
+
+    # load the token from file
 
     access_token = loadToken()
 
@@ -251,12 +255,16 @@ def selectVehicleId():
             # if option is valid
             if int(selection) <= len(response) and int(selection) > 0 :
 
+                selected_vehicle_id = str(vehicles.get(int(selection)).get("id"))
+
                 print("\nVehicle selected: \n"
                     "Name: " + vehicles.get(int(selection)).get("display_name") + ", "
                     "Model: " + vehicles.get(int(selection)).get("vin")[3] + ", "
                     "VIN: " + vehicles.get(int(selection)).get("vin") + ", "
                     "id: " + str(vehicles.get(int(selection)).get("id"))
                 )
+
+
 
                 break
 
