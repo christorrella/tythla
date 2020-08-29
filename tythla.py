@@ -255,17 +255,16 @@ def selectVehicleId():
             # if option is valid
             if int(selection) <= len(response) and int(selection) > 0 :
 
-                selected_vehicle_id = str(vehicles.get(int(selection)).get("id"))
+                selected_vehicle = vehicles.get(int(selection))
+
+                selected_vehicle_id = selected_vehicle.get("id")
 
                 print("\nVehicle selected: \n"
-                    "Name: " + vehicles.get(int(selection)).get("display_name") + ", "
-                    "Model: " + vehicles.get(int(selection)).get("vin")[3] + ", "
-                    "VIN: " + vehicles.get(int(selection)).get("vin") + ", "
-                    "id: " + str(vehicles.get(int(selection)).get("id"))
+                    "Name: " + selected_vehicle.get("display_name") + ", "
+                    "Model: " + selected_vehicle.get("vin")[3] + ", "
+                    "VIN: " + selected_vehicle.get("vin") + ", "
+                    "id: " + str(selected_vehicle.get("id"))
                 )
-
-
-
                 break
 
         except:
