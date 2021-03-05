@@ -8,11 +8,16 @@ import requests
 import json
 import datetime
 
+#out own helper methods
+
+from auth import obtainAccessToken, loadToken
+
+
 # used for verbose output
 debug = False
 
 # used for sending commands to specific vehicle
-selected_vehicle_id = "none"
+selected_vehicle_id = ""
 
 def clear():
 
@@ -33,71 +38,6 @@ def getTimeUTC(timestamp):
 
     return str(datetime.datetime.fromtimestamp(timestamp)) + " UTC"
 
-
-def saveToken(JSONtext):
-
-    # attempts to save token information from owner-api to local disk
-
-    try:
-        print("Saving token...")
-
-        fo = open("oauth.json", "w")
-        fo.write(JSONtext)
-        fo.close()
-
-        print("Token saved.")
-
-        return True
-
-    except:
-        print("Unable to save token; unknown error.")
-
-        return False
-
-
-def loadToken():
-
-    # attempts to load previously saved token info from owner-api
-
-    try:
-        print("Loading token...")
-
-        with open('oauth.json') as f:
-            data = json.load(f)
-
-        f.close()
-
-        print("Token file loaded...")
-
-        expiry = data.get("expires_in") + data.get("created_at")
-
-        if debug:
-            print("access_token: " + data.get("access_token"))
-            print("expiry: " + getTimeUTC(expiry))
-
-        if isTokenValid(expiry):
-            return data.get("access_token")
-        else:
-            return ""
-
-    except FileNotFoundError:
-        print("oauth.json not found in current directory; new access_token/login required.")
-
-        return ""
-
-
-def isTokenValid(expiry):
-
-    # checks if loaded token information is valid based on timestamp
-
-    print("Checking the token's validity...")
-
-    if time.time() > expiry :
-        print("The token in oauth.json has expired. Request a new one from the main menu.")
-        return False
-    else:
-        print("Token not expired.")
-        return True
 
 def requestVehicleList(access_token):
 
@@ -137,27 +77,24 @@ def requestVehicleList(access_token):
 
         return response
 
+def requestVehicleStatus(access_token):
 
-def requestAccessToken(email, password):
 
-    # Does the actual dirty work of requesting an access token from Tesla's API.
+    # we need this global variable
+    global selected_vehicle_id
 
-    print("\nRequesting access_token from Tesla owner-API...")
+    print("\nRequesting vehicle status from Tesla owner-API...")
 
-    oauthUrl = "https://owner-api.teslamotors.com/oauth/token"
+    oauthUrl = "https://owner-api.teslamotors.com/api/1/vehicles/" + selected_vehicle_id + "/vehicle_data"
     headers = {
-        "Content-Type": "application/json"
+        "Authorization": "Bearer " + access_token
     }
-    body = {
-        "password": password,
-        "email": email,
-        "client_secret": "c7257eb71a564034f9419ee651c7d0e5f7aa6bfbd18bafb5c5c033b093bb2fa3",
-        "client_id": "81527cff06843c8634fdc09e8ac0abefb46ac849f38fe1e431c2ef2106796384",
-        "grant_type": "password"
-    }
+    body = {}
+
+
 
     # do the POST request
-    response = requests.post(oauthUrl, data=json.dumps(body), headers=headers)
+    response = requests.get(oauthUrl, data=json.dumps(body), headers=headers)
 
     # obtain the server response code from response
     status_code = response.status_code
@@ -172,33 +109,23 @@ def requestAccessToken(email, password):
     else:
         print("Success.")
 
-        access_token = responseJSON.get("access_token")
-        created_at = responseJSON.get("created_at")
-        expires_in = responseJSON.get("expires_in")
-
-        creation_date_UTC = str(datetime.datetime.fromtimestamp(created_at))
-        expiration_date_UTC = str(datetime.datetime.fromtimestamp(expires_in + created_at))
-
-        print("access_token: " + access_token)
-        print("creation date: " + creation_date_UTC)
-        print("expiry date: " + expiration_date_UTC)
-
         if debug:
             print("\n\nFull response body: \n" + response.text)
 
-        saveToken(response.text)
+        return response
 
 
-def obtainAccessToken():
 
-    # Ask user for email and password and submit to other method for getting access_token
+#def printVehicleStats(data, depth):
 
-    print("Enter your Tesla account's email and password.\n")
+    # we assume that data is a key,value dict pair
 
-    teslaEmail = input("Email: ")
-    teslaPassword = input("Password: ")
+    # base case: value (NOT key) of data not a list or dictionary
+    #if (not isinstance(data, type(list)) and not isinstance(data, type(dict))):
 
-    success = requestAccessToken(teslaEmail, teslaPassword)
+
+
+
 
 def selectVehicleId():
 
@@ -257,7 +184,7 @@ def selectVehicleId():
 
                 selected_vehicle = vehicles.get(int(selection))
 
-                selected_vehicle_id = selected_vehicle.get("id")
+                selected_vehicle_id = str(selected_vehicle.get("id"))
 
                 print("\nVehicle selected: \n"
                     "Name: " + selected_vehicle.get("display_name") + ", "
@@ -277,13 +204,43 @@ def sendCommands():
     print("sendCommands not yet implemented.")
 
 def checkStatus():
-    print("checkStatus not yet implemented.")
+
+    # asks owner-API for information about the selected vehicle
+
+    # check for valid token file
+
+    access_token = loadToken()
+
+    if not access_token:
+        print("Unable to request vehicle status without valid token.")
+        return
+
+    # check for valid vehicle ID on file
+
+    # let python know we want the global var
+    global selected_vehicle_id
+
+    if not selected_vehicle_id:
+        print("Unable to request vehicle status without a selected vehicle.")
+        return
+
+    # then request the vehicle list from the API
+
+    response = requestVehicleStatus(access_token)
+
+    resp_dict = json.loads(response.text)
+
+    resp_dict = resp_dict["response"]
+
+    opts = resp_dict["option_codes"]
+
+    print(type(opts))
 
 def menu():
 
     menuOptionText = {
         1: "Log in: obtain an access_token",
-        2: "Select vehicle: specify a vehicle_id",
+        2: "Select vehicle: specify a vehicle's id",
         3: "Send vehicle commands",
         4: "Check vehicle status",
         5: "Quit Tythla"
@@ -332,9 +289,6 @@ def menu():
             pass
 
         clear()
-
-
-
 
 
 def main():
