@@ -1,16 +1,9 @@
 # for the clear screen function
 from os import system, name
-from time import sleep
-import time
-
-# for doing Tesla API server requests
-import requests
-import json
-import datetime
-
-#out own helper methods
-
+# for authorization requests (logging into owner-api)
 from auth import obtainAccessToken, loadToken
+# for getting vitals and sending commands (owner-api)
+from commands import requestVehicleList, requestVehicleStatus
 
 
 # used for verbose output
@@ -30,102 +23,6 @@ def clear():
     # for mac and linux
     else:
         _ = system('clear')
-
-
-def getTimeUTC(timestamp):
-
-    # useful for printing dates
-
-    return str(datetime.datetime.fromtimestamp(timestamp)) + " UTC"
-
-
-def requestVehicleList(access_token):
-
-    # Requests list of vehicles from Tesla owner's account
-
-    print("\nRequesting vehicle list from Tesla owner-API...")
-
-    oauthUrl = "https://owner-api.teslamotors.com/api/1/vehicles"
-    headers = {
-        "Authorization": "Bearer " + access_token
-    }
-    body = {}
-
-    # do the GET request
-    response = requests.get(oauthUrl, data=json.dumps(body), headers=headers)
-
-    # obtain the server response code from response
-    status_code = response.status_code
-    responseJSON = response.json()
-
-    if not (status_code == 200):
-        print("Failure.")
-        print("HTTP Status Code = " + str(status_code))
-        print("Server response body: " + response.text)
-        return False
-    else:
-        print("Success.")
-
-        if debug:
-            print("\n\nFull response body: \n" + response.text)
-
-        # parse first layer of response
-        response = responseJSON.get("response")
-        count = responseJSON.get("count")
-
-
-
-        return response
-
-def requestVehicleStatus(access_token):
-
-
-    # we need this global variable
-    global selected_vehicle_id
-
-    print("\nRequesting vehicle status from Tesla owner-API...")
-
-    oauthUrl = "https://owner-api.teslamotors.com/api/1/vehicles/" + selected_vehicle_id + "/vehicle_data"
-    headers = {
-        "Authorization": "Bearer " + access_token
-    }
-    body = {}
-
-
-
-    # do the POST request
-    response = requests.get(oauthUrl, data=json.dumps(body), headers=headers)
-
-    # obtain the server response code from response
-    status_code = response.status_code
-    responseJSON = response.json()
-
-    # let the user know if anything went wrong
-    if not (status_code == 200):
-        print("Failure.")
-        print("HTTP Status Code = " + str(status_code))
-        print("Server response body: " + response.text)
-        return False
-    else:
-        print("Success.")
-
-        if debug:
-            print("\n\nFull response body: \n" + response.text)
-
-        return response
-
-
-
-#def printVehicleStats(data, depth):
-
-    # we assume that data is a key,value dict pair
-
-    # base case: value (NOT key) of data not a list or dictionary
-    #if (not isinstance(data, type(list)) and not isinstance(data, type(dict))):
-
-
-
-
 
 def selectVehicleId():
 
@@ -226,15 +123,9 @@ def checkStatus():
 
     # then request the vehicle list from the API
 
-    response = requestVehicleStatus(access_token)
+    response = requestVehicleStatus(access_token, selected_vehicle_id)
 
-    resp_dict = json.loads(response.text)
-
-    resp_dict = resp_dict["response"]
-
-    opts = resp_dict["option_codes"]
-
-    print(type(opts))
+    print(response.text)
 
 def menu():
 
