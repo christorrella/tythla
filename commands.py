@@ -1,7 +1,7 @@
 import requests
 import json
 
-debug = True
+debug = False
 
 def requestVehicleList(access_token):
 
@@ -50,8 +50,6 @@ def requestVehicleStatus(access_token, selected_vehicle_id):
         "Authorization": "Bearer " + access_token
     }
     body = {}
-
-    print(selected_vehicle_id)
 
 
 

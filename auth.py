@@ -3,7 +3,7 @@ import datetime
 import json
 import time
 
-debug = True
+debug = False
 
 def getTimeUTC(timestamp):
 

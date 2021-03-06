@@ -5,6 +5,8 @@ from auth import obtainAccessToken, loadToken
 # for getting vitals and sending commands (owner-api)
 from commands import requestVehicleList, requestVehicleStatus
 
+import json
+
 
 # used for verbose output
 debug = False
@@ -94,11 +96,26 @@ def selectVehicleId():
         except:
             pass
 
-
-
-
 def sendCommands():
     print("sendCommands not yet implemented.")
+
+def printStatus(response, level):
+
+    for item in response:
+
+        if type(response[item]) == dict:
+            for i in range(level):
+                print("\t", end="")
+            print(f"{item}: ")
+            printStatus(response[item], level + 1)
+
+        else:
+            for i in range(level):
+                print("\t", end="")
+            print(f"{item}: {response[item]}")
+
+
+
 
 def checkStatus():
 
@@ -125,7 +142,7 @@ def checkStatus():
 
     response = requestVehicleStatus(access_token, selected_vehicle_id)
 
-    print(response.text)
+    printStatus(json.loads(response.text), 0)
 
 def menu():
 
